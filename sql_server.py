@@ -67,18 +67,18 @@ def toPostgressType(t, length):
     else:
         return None
 
-def process_row(row):
-    # print(f"process_row called for {row}")
-    name = row.COLUMN_NAME
-    typ = toPostgressType(row.DATA_TYPE, row.CHARACTER_MAXIMUM_LENGTH)
+def get_column_definition(column_info):
+    name = column_info.COLUMN_NAME
+    typ = toPostgressType(column_info.DATA_TYPE, column_info.CHARACTER_MAXIMUM_LENGTH)
     nullable = ""
-    if row.IS_NULLABLE == 'NO':
+    if column_info.IS_NULLABLE == 'NO':
         nullable = " NOT NULL"
     if name == "Order":
         name = '"Order"'
     return f"{name} {typ}{nullable}"
 
 def get_table_definition(connection : pyodbc.Connection, table : str) -> str:
+    logging.debug(f"sql_server.get_table_definition called for table = {table}")
     cursor = connection.cursor()
     sql = f"""
 SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
@@ -88,16 +88,17 @@ WHERE TABLE_NAME='{table}';
 
     defn = f"CREATE TABLE IF NOT EXISTS {table} ("
 
-    first_row = True
-    for row in cursor:
-        defn = f"{defn}{"" if first_row else ","}\n{process_row(row)}"
-        first_row = False
+    first_column = True
+    for column_info in cursor:
+        defn = f"{defn}{"" if first_column else ","}\n{get_column_definition(column_info)}"
+        first_column = False
 
     defn = f"""
 {defn}
 );"""
     
     cursor.close()
+    logging.debug(f"sql_server.get_table_definition returning {defn}")
     return defn
 
 def get_primary_key(connection : pyodbc.Connection, table : str) -> str:
@@ -105,6 +106,7 @@ def get_primary_key(connection : pyodbc.Connection, table : str) -> str:
     Find the column (name) of the primary key for the table.
     Assumes the primary key is just 1 field. This may not be the case.
     '''
+    logging.debug(f"sql_server.get_primary_key called for table = {table}")
     cursor = connection.cursor()
     sql = f"""
 SELECT 
@@ -123,6 +125,8 @@ AND KCU.TABLE_NAME='{table}';
         key = row.COLUMN_NAME
         break
     cursor.close()
+
+    logging.debug(f"sql_server.get_primary_key returning {key}")
     return key
 
 def get_foreign_keys(connection, table) -> str:
@@ -132,6 +136,7 @@ def get_foreign_keys(connection, table) -> str:
     Reference: # https://stackoverflow.com/questions/3907879/sql-server-howto-get-foreign-key-reference-from-information-schema
 
     '''
+    logging.debug(f"sql_server.get_foreign_keys called for table = {table}")
     defn = ""
     cursor = connection.cursor()
     sql = f"""
@@ -172,4 +177,5 @@ FOREIGN KEY ({row.FK_COLUMN_NAME})
 REFERENCES {row.REFERENCED_TABLE_NAME}({row.REFERENCED_COLUMN_NAME});"""
 
     cursor.close()
+    logging.debug(f"sql_server.get_foreign_keys returning {defn}")
     return defn
