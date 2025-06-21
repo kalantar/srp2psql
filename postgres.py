@@ -2,7 +2,7 @@ import logging
 
 import psycopg2
 
-def connect(db_options:dict) -> psycopg2.connection | None:
+def connect(db_options:dict):
     '''
     Connect to (target) Postgres database.
     '''
@@ -16,7 +16,7 @@ def connect(db_options:dict) -> psycopg2.connection | None:
         logging.exception(f"ERROR: unable to connect to postgress database", ex)
         return None
 
-def execute(connection : psycopg2.connection, sql : str) -> None:
+def execute(connection, sql : str) -> None:
     logging.debug(f"postgres.execute() called for: {sql}")
     cursor = connection.cursor()
     cursor.execute(sql)
