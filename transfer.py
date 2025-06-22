@@ -94,7 +94,7 @@ def escape_pg(value):
     if isinstance(value, str):
         return "'" + value.replace("'", "''") + "'"
     if isinstance(value, datetime.datetime):
-        return value.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        return "'" + value.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + "'"
     return str(value)
 
 def generate_insert_statements_for_table(connection, table_name : str) -> str:
