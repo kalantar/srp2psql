@@ -36,7 +36,7 @@ def get_table_definition(connection, table):
 
     table_defn = ss.get_table_definition(connection, table)
     pk_defn = ss.get_pk_definition(connection, table)
-    fk_defn = ss.get_fk_definitions(connection, table)
+    fk_defn = "" #ss.get_fk_definitions(connection, table)
 
     defn = f"""
 {table_defn}
@@ -57,15 +57,6 @@ def get_table_values(connection, table):
     values_cursor = connection.cursor()
     values_cursor.execute(f"SELECT * FROM {table};")
     column_names = [column[0] for column in values_cursor.description]
-#     columns_cursor = connection.cursor()
-#     columns_cursor.execute(f"""
-# SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
-# WHERE TABLE_NAME='{table}';
-# """)
-#     col2fn = {}
-#     for column_info in columns_cursor:
-#         col2fn[column_info.COLUMN_NAME] = 
-
     columns_str = ', '.join(column_names)
     for row in values_cursor:
         try:
