@@ -177,7 +177,8 @@ def main(options: Options):
             logging.debug("main transferring all tables")
 
             for table in [
-                "LoadDataFiles", 
+                # "LoadDataFiles", 
+                "StudyItems",
                 # "LocalizedStudyItems", 
                 # "DBScriptHistories",
                 # "ApplicationHistories",
@@ -201,7 +202,6 @@ def main(options: Options):
                 # "Individuals",
                 # "IndividualEmails",
                 # "IndividualPhones",
-                # "StudyItems",
                 # "Activities",
                 # "ActivityStudyItems",
                 # "ActivityStudyItemIndividuals",
