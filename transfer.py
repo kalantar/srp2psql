@@ -14,6 +14,7 @@ class Options:
     dry_run: bool
     table: str | None
     include_data: bool
+    data_only: bool
 
 SRP_SERVER = "(LocalDB)\\SRP"
 SRP_DATABASE = "C:\\USERS\\NABIL\\APPDATA\\ROAMING\\SRP\\SRP.MDF"
@@ -27,6 +28,55 @@ TARGET_DATABASE = {
 }
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def get_table_definition(connection, table):
+    '''
+    Retrieve the table definition (SQL to create a copy) including primary and foreign keys.
+    '''
+    logging.debug(f"get_table_definition called for {table}")
+    table_defn = ss.get_table_definition(connection, table)
+    pk_defn = ss.get_pk_definition(connection, table)
+    fk_defn = ss.get_fk_definitions(connection, table)
+
+    defn = f"""
+{table_defn}
+{pk_defn}
+{fk_defn}
+"""
+    
+    logging.debug(f"get_table_definition returning {defn}")
+    return defn
+
+def get_table_values(connection, table):
+    '''
+    Get SQL to insert all values from a table.
+    '''
+    logging.debug(f"get_table_values called for {table}")
+
+    pk = ss.get_pk(connection, table)
+    cursor = connection.cursor()
+    cursor.execute(f"SELECT * FROM {table};")
+    column_names = [column[0] for column in cursor.description]
+    # rows = cursor.fetchall()
+
+    columns_str = ', '.join(column_names)
+    for row in cursor:
+        try:
+            values = ',\n   '.join(escape_pg(val) for val in row)
+            values_sql = f"""INSERT INTO {table} (
+{columns_str}
+) VALUES (
+{values}
+)
+ON CONFLICT {pk} DO NOTHING;
+"""
+
+        except Exception as e:
+            print(f"==== STMT ERROR ({table}): {e}")
+    
+    logging.debug(f"get_table_values returning {values_sql}")
+    return values_sql
+
 
 def escape_pg(value):
     '''
@@ -65,72 +115,34 @@ def generate_insert_statements_for_table(connection, table_name : str) -> str:
 
     return insert_statements
 
-def transfer_table(source_connection, target_connection, table_name : str) -> str:
+def transfer_table(source_connection, target_connection, table : str, options : Options) -> str:
+
     try:
-        primary_key = ss.get_pk(source_connection, table_name)
-        logging.info(f"------ primary key = {primary_key}")
+        # get table
+        if not options.data_only:
+            defn_sql = get_table_definition(source_connection, table, options)
+
+        # get data
+        if options.include_data or options.data_only:
+            values_sql = get_table_values(source_connection, table)
+
+        if options.dry_run:
+            print( defn_sql )
+            print (values_sql)
+        else:
+            logging.info("executing sql")
+            pg.execute(target_connection, defn_sql)
+            pg.execute(target_connection, values_sql)
+
     except Exception as e:
-        logging.exception("ERROR looking for primary key", e)
-        return
-
-    cursor = source_connection.cursor()
-    cursor.execute(f"SELECT * FROM {table_name};")
-    column_names = [column[0] for column in cursor.description]
-    # rows = cursor.fetchall()
-
-    columns_str = ', '.join(column_names)
-    for row in cursor:
-        try:
-            values = ',\n   '.join(escape_pg(val) for val in row)
-            sql = f"""INSERT INTO {table_name} (
-{columns_str}
-) VALUES (
-{values}
-)
-ON CONFLICT {primary_key} DO NOTHING;
-"""
-            print("------")
-            print(sql)
-            print("------")
-            target_cursor = target_connection.cursor()
-            target_cursor.execute(sql)
-            target_connection.commit()
-            target_cursor.close()
-        except Exception as e:
-            print(f"==== STMT ERROR ({table_name}): {e}")
-
-def transfer_table(connection, table, options : Options):
-    '''
-    Handle single table requests
-    '''
-    table_defn = ss.get_table_definition(connection, table)
-    pk_defn = ss.get_pk_definition(connection, table)
-    fk_defn = ss.get_fk_definitions(connection, table)
-
-    defn = f"""
-{table_defn}
-{pk_defn}
-{fk_defn}
-"""
-    
-    if options.include_data:
-        logging.info("TBD -- include_data")
-
-    if options.dry_run:
-        print( defn )
-    else:
-        logging.info("executing defn")
-        pg.execute(connection, defn)
-
+        logging.exception(f"error transfering table {table}", e)
 
 def main(options: Options):
 
-    logging.info('__main__ called')
-    logging.info(f'__main__: {options}')
+    logging.info('main called with {options}')
 
     source_connection = None
     target_connection = None
-    target_cursor = None
 
     try:
 
@@ -146,10 +158,11 @@ def main(options: Options):
                 sys.exit()
 
         if options.table != None:
+            logging.debug(f"main transferring a single table")
             transfer_table(source_connection, options.table, options)
 
         else:
-            logging.info("TBD: handle multiple tables")
+            logging.debug("main transferring all tables")
 
             for table in [
                 "LoadDataFiles", 
@@ -181,18 +194,7 @@ def main(options: Options):
                 # "ActivityStudyItems",
                 # "ActivityStudyItemIndividuals",
             ]:
-                logging.info(f"TBD - handle table {table}")
-
-    #         try:
-    #             # insert_statements = generate_insert_statements_for_table(srp_connection, table)
-    #             print("--")
-    #             print(f"-- {table}")
-    #             # print(f"-- {table} ({len(insert_statements)} items)")
-    #             print("--")
-    #             transfer_table(source_connection, target_connection, table)
-    #         except Exception as e:
-    #             print(f"==== TABLE ERROR ({table}): {e}")
-
+                transfer_table(source_connection, target_connection, table, options)
 
     except Exception as ex:
             print(f"error: {ex}")
@@ -206,12 +208,14 @@ def main(options: Options):
 @click.command()
 @click.option('-d', '--dry-run', is_flag=True, help='Run without making changes')
 @click.option('-t', '--table', help='Name of the table to operate on')
-@click.option('-i', '--include-data', is_flag=True, help='Include data in the operation')
-def cli(dry_run, table, include_data):
+@click.option('-i', '--include-data', is_flag=True, help='Include data')
+@click.option('-o', '--data-only', is_flag=True, help='Include only data -- no table definition')
+def cli(dry_run, table, include_data, data_only):
     options = Options(
         dry_run = dry_run,
         table = table,
         include_data = include_data,
+        data_only = data_only,
     )
     main(options)
     
