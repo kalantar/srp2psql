@@ -120,7 +120,7 @@ def transfer_table(connection, table, options : Options):
         print( defn )
     else:
         logging.info("executing defn")
-        pg.execute(defn)
+        pg.execute(connection, defn)
 
 
 def main(options: Options):
