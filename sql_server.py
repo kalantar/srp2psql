@@ -115,7 +115,7 @@ def get_pk_cursor(connection : pyodbc.Connection, table : str) -> str:
     Find the column (name) of the primary key for the table.
     Assumes the primary key is just 1 field. This may not be the case.
     '''
-    logging.debug(f"sql_server.get_primary_key called for table = {table}")
+    logging.debug(f"sql_server.get_pk_cursor called for table = {table}")
 
     cursor = connection.cursor()
     sql = f"""
@@ -138,7 +138,7 @@ def get_pk(connection : pyodbc.Connection, table : str) -> str:
     Find the column (name) of the primary key for the table.
     Assumes the primary key is just 1 field. This may not be the case.
     '''
-    logging.debug(f"sql_server.get_primary_key called for {table}")
+    logging.debug(f"sql_server.get_pk called for {table}")
 
     try:
         key = None
@@ -150,7 +150,7 @@ def get_pk(connection : pyodbc.Connection, table : str) -> str:
         if key == None:
             logging.warning(f"no primary key found for table {table}")
 
-        logging.debug(f"sql_server.get_primary_key returning {key}")
+        logging.debug(f"sql_server.get_pk returning {key}")
         return key
     except Exception as e:
         logging.error(f"unable to identify primary key for {table}", e)
@@ -162,6 +162,7 @@ def get_pk_definition(connection : pyodbc.Connection, table : str) -> str:
     logging.debug(f"sql_server.get_pk_definition called for {table}")
 
     try:
+        defn = ""
         first_row = True
         cursor = get_pk_cursor(connection, table)
         for row in cursor:
