@@ -26,7 +26,7 @@ TARGET_DATABASE = {
     'port': '5432'
 }
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def escape_pg(value):
     '''

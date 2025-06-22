@@ -29,10 +29,13 @@ def get_tables(connection : pyodbc.Connection) -> list:
     '''
     Get list of all tables from SQL Server database.
     '''
+    logging.debug("sql_server.get_tables called")
+
     try:
         cursor = connection.cursor()
         cursor.execute("SELECT * FROM INFORMATION_SCHEMA.TABLES;")
         tables = [r.TABLE_NAME for r in cursor]
+        logging.debug(f"sql_server.get_tables returning {tables}")
         return tables
     
     except Exception as ex:
@@ -68,6 +71,8 @@ def toPostgressType(t, length):
         return None
 
 def get_column_definition(column_info):
+    logging.debug(f"sql_server.get_column_definition called for {column_info.COLUMN_NAME}")
+
     name = column_info.COLUMN_NAME
     typ = toPostgressType(column_info.DATA_TYPE, column_info.CHARACTER_MAXIMUM_LENGTH)
     nullable = ""
@@ -75,10 +80,14 @@ def get_column_definition(column_info):
         nullable = " NOT NULL"
     if name == "Order":
         name = '"Order"'
-    return f"{name} {typ}{nullable}"
+    defn = f"{name} {typ}{nullable}"
+
+    logging.debug(f"sql_server.get_column_definition returning {defn}")
+    return defn
 
 def get_table_definition(connection : pyodbc.Connection, table : str) -> str:
     logging.debug(f"sql_server.get_table_definition called for table = {table}")
+    
     cursor = connection.cursor()
     sql = f"""
 SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
