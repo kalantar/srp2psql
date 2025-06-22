@@ -45,6 +45,10 @@ def get_tables(connection : pyodbc.Connection) -> list:
     finally:
         cursor.close()
 
+# def toConversionFunction(t, length):
+#     if t == "bigint":
+#         return def 
+
 def toPostgressType(t, length):
     if t == "bigint":
         return "BIGINT"

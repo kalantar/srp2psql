@@ -55,13 +55,20 @@ def get_table_values(connection, table):
     logging.debug(f"get_table_values called for {table}")
 
     pk = ss.get_pk(connection, table)
-    cursor = connection.cursor()
-    cursor.execute(f"SELECT * FROM {table};")
-    column_names = [column[0] for column in cursor.description]
-    # rows = cursor.fetchall()
+    values_cursor = connection.cursor()
+    values_cursor.execute(f"SELECT * FROM {table};")
+    column_names = [column[0] for column in values_cursor.description]
+#     columns_cursor = connection.cursor()
+#     columns_cursor.execute(f"""
+# SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+# WHERE TABLE_NAME='{table}';
+# """)
+#     col2fn = {}
+#     for column_info in columns_cursor:
+#         col2fn[column_info.COLUMN_NAME] = 
 
     columns_str = ', '.join(column_names)
-    for row in cursor:
+    for row in values_cursor:
         try:
             values = ',\n   '.join(escape_pg(val) for val in row)
             values_sql = f"""INSERT INTO {table} (
@@ -120,7 +127,7 @@ def transfer_table(source_connection, target_connection, table : str, options : 
 
     defn_sql = ""
     values_sql = ""
-    
+
     try:
         # get table
         if not options.data_only:
