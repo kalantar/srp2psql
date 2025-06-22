@@ -172,9 +172,9 @@ def main(options: Options):
 
             for table in [
                 # "LoadDataFiles", 
-                "StudyItems",
+                # "StudyItems",
                 # "LocalizedStudyItems", 
-                # "DBScriptHistories",
+                "DBScriptHistories",
                 # "ApplicationHistories",
                 # "ApplicationConfigurations",
                 # "Lists",
