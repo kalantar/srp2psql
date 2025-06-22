@@ -124,7 +124,7 @@ AND KCU.TABLE_NAME='{table}';
     cursor.execute(sql)
     return cursor
 
-def get_pk(connection : pyodbc.connection, table : str) -> str:
+def get_pk(connection : pyodbc.Connection, table : str) -> str:
     '''
     Find the column (name) of the primary key for the table.
     Assumes the primary key is just 1 field. This may not be the case.
@@ -150,7 +150,7 @@ def get_pk(connection : pyodbc.connection, table : str) -> str:
     finally:
         cursor.close()
 
-def get_pk_definition(connection : pyodbc.connection, table : str) -> str:
+def get_pk_definition(connection : pyodbc.Connection, table : str) -> str:
     logging.debug(f"sql_server.get_pk_definition called for {table}")
 
     try:
