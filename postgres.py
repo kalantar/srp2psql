@@ -17,8 +17,13 @@ def connect(db_options:dict):
         return None
 
 def execute(connection, sql : str) -> None:
-    logging.debug(f"postgres.execute() called for: {sql}")
-    cursor = connection.cursor()
-    cursor.execute(sql)
-    connection.commit()
-    cursor.close()
+    logging.debug(f"postgres.execute() called with: {sql}")
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        connection.commit()
+    except Exception as e:
+        logging.error("error executing sql statement", e)
+    finally:
+        cursor.close()

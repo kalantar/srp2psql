@@ -119,6 +119,7 @@ def transfer_table(connection, table, options : Options):
     if options.dry_run:
         print( defn )
     else:
+        logging.info("executing defn")
         pg.execute(defn)
 
 

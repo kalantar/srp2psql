@@ -168,9 +168,9 @@ def get_pk_definition(connection : pyodbc.Connection, table : str) -> str:
         for row in cursor:
             if first_row:
                 defn = f"""{defn}
-    ALTER TABLE {table}
-    ADD CONSTRAINT {row.CONSTRAINT_NAME}
-    PRIMARY KEY ({row.COLUMN_NAME}"""
+ALTER TABLE {table}
+ADD CONSTRAINT {row.CONSTRAINT_NAME}
+PRIMARY KEY ({row.COLUMN_NAME}"""
                 first_row = False
             else:
                 defn = f"{defn},{row.COLUMN_NAME}"
