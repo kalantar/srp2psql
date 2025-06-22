@@ -159,7 +159,7 @@ def main(options: Options):
 
         if options.table != None:
             logging.debug(f"main transferring a single table")
-            transfer_table(source_connection, options.table, options)
+            transfer_table(source_connection, target_connection, options.table, options)
 
         else:
             logging.debug("main transferring all tables")
