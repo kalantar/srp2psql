@@ -159,7 +159,7 @@ def get_pk(connection : pyodbc.Connection, table : str) -> str:
         return key_columns
     
     except Exception as e:
-        logging.error(f"unable to identify primary key for {table}", e)
+        logging.exception(f"unable to identify primary key for {table}", e)
         return None
     
     finally:
@@ -186,7 +186,7 @@ PRIMARY KEY ({row.COLUMN_NAME}"""
         logging.debug(f"sql_server.get_pk_definition returning {defn}")
         return defn
     except Exception as e:
-        logging.error(f"unable to get primary key definition for {table}", e)
+        logging.exception(f"unable to get primary key definition for {table}", e)
         return None
     finally:
         cursor.close()
