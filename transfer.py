@@ -53,6 +53,7 @@ def get_table_values(connection, table):
     '''
     logging.debug(f"get_table_values called for {table}")
 
+    values_sql = ""
     pk = ss.get_pk(connection, table)
     values_cursor = connection.cursor()
     values_cursor.execute(f"SELECT * FROM {table};")
@@ -61,7 +62,8 @@ def get_table_values(connection, table):
     for row in values_cursor:
         try:
             values = ',\n   '.join(escape_pg(val) for val in row)
-            values_sql = f"""INSERT INTO {table} (
+            values_sql = f"""{values_sql}
+INSERT INTO {table} (
 {columns_str}
 ) VALUES (
 {values}
