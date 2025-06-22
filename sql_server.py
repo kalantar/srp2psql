@@ -150,7 +150,7 @@ def get_pk(connection : pyodbc.Connection, table : str) -> str:
         key_columns = []
         cursor = get_pk_cursor(connection, table)
         for row in cursor:
-            key_columns = key_columns.append(row.COLUMN_NAME)
+            key_columns.append(row.COLUMN_NAME)
 
         if len(key_columns) == 0:
             logging.warning(f"no primary key found for table {table}")
