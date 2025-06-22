@@ -1,10 +1,9 @@
+import datetime
 import logging
 import sys
 
 import click
 from dataclasses import dataclass
-import pyodbc
-
 
 import postgres as pg
 import sql_server as ss
@@ -94,6 +93,8 @@ def escape_pg(value):
         return 'NULL'
     if isinstance(value, str):
         return "'" + value.replace("'", "''") + "'"
+    if isinstance(value, datetime.datetime):
+        return value.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     return str(value)
 
 def generate_insert_statements_for_table(connection, table_name : str) -> str:
