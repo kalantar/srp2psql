@@ -34,6 +34,7 @@ def get_table_definition(connection, table):
     Retrieve the table definition (SQL to create a copy) including primary and foreign keys.
     '''
     logging.debug(f"get_table_definition called for {table}")
+
     table_defn = ss.get_table_definition(connection, table)
     pk_defn = ss.get_pk_definition(connection, table)
     fk_defn = ss.get_fk_definitions(connection, table)
@@ -120,7 +121,7 @@ def transfer_table(source_connection, target_connection, table : str, options : 
     try:
         # get table
         if not options.data_only:
-            defn_sql = get_table_definition(source_connection, table, options)
+            defn_sql = get_table_definition(source_connection, table)
 
         # get data
         if options.include_data or options.data_only:
