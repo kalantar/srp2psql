@@ -99,7 +99,9 @@ WHERE TABLE_NAME='{table}';
 """
     cursor.execute(sql)
 
-    defn = f"CREATE TABLE IF NOT EXISTS {table} ("
+    defn = f"""
+DROP TABLE {table};
+CREATE TABLE IF NOT EXISTS {table} ("""
 
     first_column = True
     for column_info in cursor:
