@@ -101,12 +101,13 @@ WHERE TABLE_NAME='{table}';
     logging.debug(f"sql_server.get_table_definition returning {defn}")
     return defn
 
-def get_primary_key(connection : pyodbc.Connection, table : str) -> str:
+def get_pk_cursor(connection : pyodbc.Connection, table : str) -> str:
     '''
     Find the column (name) of the primary key for the table.
     Assumes the primary key is just 1 field. This may not be the case.
     '''
     logging.debug(f"sql_server.get_primary_key called for table = {table}")
+
     cursor = connection.cursor()
     sql = f"""
 SELECT 
@@ -121,15 +122,60 @@ WHERE TC.CONSTRAINT_TYPE = 'PRIMARY KEY'
 AND KCU.TABLE_NAME='{table}';
 """
     cursor.execute(sql)
-    for row in cursor:
-        key = row.COLUMN_NAME
-        break
-    cursor.close()
+    return cursor
 
-    logging.debug(f"sql_server.get_primary_key returning {key}")
-    return key
+def get_pk(connection : pyodbc.connection, table : str) -> str:
+    '''
+    Find the column (name) of the primary key for the table.
+    Assumes the primary key is just 1 field. This may not be the case.
+    '''
+    logging.debug(f"sql_server.get_primary_key called for {table}")
 
-def get_foreign_keys(connection, table) -> str:
+    try:
+        key = None
+        cursor = get_pk_cursor(connection, table)
+        for row in cursor:
+            key = row.COLUMN_NAME
+            break
+        cursor.close()
+
+        if key == None:
+            logging.warning(f"no primary key found for table {table}")
+
+        logging.debug(f"sql_server.get_primary_key returning {key}")
+        return key
+    except Exception as e:
+        logging.error(f"unable to identify primary key for {table}", e)
+        return None
+    finally:
+        cursor.close()
+
+def get_pk_definition(connection : pyodbc.connection, table : str) -> str:
+    logging.debug(f"sql_server.get_pk_definition called for {table}")
+
+    try:
+        first_row = True
+        cursor = get_pk_cursor(connection, table)
+        for row in cursor:
+            if first_row:
+                defn = f"""{defn}
+    ALTER TABLE {table}
+    ADD CONSTRAINT {row.CONSTRAINT_NAME}
+    PRIMARY KEY ({row.COLUMN_NAME}"""
+                first_row = False
+            else:
+                defn = f"{defn},{row.COLUMN_NAME}"
+        defn=f"{defn});"
+
+        logging.debug(f"sql_server.get_pk_definition returning {defn}")
+        return defn
+    except Exception as e:
+        logging.error(f"unable to get primary key definition for {table}", e)
+        return None
+    finally:
+        cursor.close()
+
+def get_fk_definitions(connection, table) -> str:
     '''
     Generate SQL to define foreign keys for a given table.
 

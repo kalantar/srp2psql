@@ -42,8 +42,7 @@ def generate_insert_statements_for_table(connection, table_name : str) -> str:
     cursor = connection.cursor()
     cursor.execute(f"SELECT * FROM {table_name};")
     column_names = [column[0] for column in cursor.description]
-    primary_key = ss.get_primary_key(connection, table_name)
-    # rows = cursor.fetchall()
+    primary_key = ss.get_pk_definition(connection, table_name)
 
     insert_statements = []
     columns_str = ', '.join(column_names)
@@ -69,9 +68,9 @@ def generate_insert_statements_for_table(connection, table_name : str) -> str:
 def transfer_table(source_connection, target_connection, table_name : str) -> str:
     try:
         primary_key = ss.get_primary_key(source_connection, table_name)
-        print(f"------ primary key = {primary_key}")
+        logging.info(f"------ primary key = {primary_key}")
     except Exception as e:
-        print(f"ERROR looking for primary key: {e}")
+        logging.exception("ERROR looking for primary key", e)
         return
 
     cursor = source_connection.cursor()
@@ -106,7 +105,7 @@ def transfer_table(connection, table, options : Options):
     '''
     table_defn = ss.get_table_definition(connection, table)
     pk_defn = ss.get_primary_key(connection, table)
-    fk_defn = ss.get_foreign_keys(connection, table)
+    fk_defn = ss.get_fk_definitions(connection, table)
 
     defn = f"""
 {table_defn}
@@ -148,39 +147,41 @@ def main(options: Options):
         if options.table != None:
             transfer_table(source_connection, options.table, options)
 
-        logging.info("TBD: handle multiple tables")
+        else:
+            logging.info("TBD: handle multiple tables")
 
-        for table in [
-            "LoadDataFiles", 
-            # "LocalizedStudyItems", 
-            # "DBScriptHistories",
-            # "ApplicationHistories",
-            # "ApplicationConfigurations",
-            # "Lists",
-            # "ListColumns",
-            # "ListDisplayColumns",
-            # "ListSortColumns",
-            # "ListFilterColumns",
-            # "NationalCommunities",
-            # "GroupOfRegions",
-            # "Regions",
-            # "Subregions",
-            # "GroupOfClusters",
-            # "Clusters",
-            # "ElectoralUnits",
-            # "Localities",
-            # "Subdivisions",
-            # "ClusterAuxiliaryBoardMembers",
-            # "Cycles",
-            # "Individuals",
-            # "IndividualEmails",
-            # "IndividualPhones",
-            # "StudyItems",
-            # "Activities",
-            # "ActivityStudyItems",
-            # "ActivityStudyItemIndividuals",
-        ]:
-            logging.info(f"TBD - handle table {table}")
+            for table in [
+                "LoadDataFiles", 
+                # "LocalizedStudyItems", 
+                # "DBScriptHistories",
+                # "ApplicationHistories",
+                # "ApplicationConfigurations",
+                # "Lists",
+                # "ListColumns",
+                # "ListDisplayColumns",
+                # "ListSortColumns",
+                # "ListFilterColumns",
+                # "NationalCommunities",
+                # "GroupOfRegions",
+                # "Regions",
+                # "Subregions",
+                # "GroupOfClusters",
+                # "Clusters",
+                # "ElectoralUnits",
+                # "Localities",
+                # "Subdivisions",
+                # "ClusterAuxiliaryBoardMembers",
+                # "Cycles",
+                # "Individuals",
+                # "IndividualEmails",
+                # "IndividualPhones",
+                # "StudyItems",
+                # "Activities",
+                # "ActivityStudyItems",
+                # "ActivityStudyItemIndividuals",
+            ]:
+                logging.info(f"TBD - handle table {table}")
+
     #         try:
     #             # insert_statements = generate_insert_statements_for_table(srp_connection, table)
     #             print("--")
