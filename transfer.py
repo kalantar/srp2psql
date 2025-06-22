@@ -54,10 +54,11 @@ def get_table_values(connection, table):
     logging.debug(f"get_table_values called for {table}")
 
     values_sql = ""
-    pk = ss.get_pk(connection, table)
+    pk_columns = ss.get_pk(connection, table)
     values_cursor = connection.cursor()
     values_cursor.execute(f"SELECT * FROM {table};")
     column_names = [column[0] for column in values_cursor.description]
+    pk = ', '.join(pk_columns)
     columns_str = ', '.join(column_names)
     for row in values_cursor:
         try:

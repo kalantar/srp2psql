@@ -147,20 +147,21 @@ def get_pk(connection : pyodbc.Connection, table : str) -> str:
     logging.debug(f"sql_server.get_pk called for {table}")
 
     try:
-        key = None
+        key_columns = []
         cursor = get_pk_cursor(connection, table)
         for row in cursor:
-            key = row.COLUMN_NAME
-            break
+            key_columns = key_columns.append(row.COLUMN_NAME)
 
-        if key == None:
+        if len(key_columns) == 0:
             logging.warning(f"no primary key found for table {table}")
 
-        logging.debug(f"sql_server.get_pk returning {key}")
-        return key
+        logging.debug(f"sql_server.get_pk returning {key_columns}")
+        return key_columns
+    
     except Exception as e:
         logging.error(f"unable to identify primary key for {table}", e)
         return None
+    
     finally:
         cursor.close()
 
