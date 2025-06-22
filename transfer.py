@@ -75,7 +75,7 @@ def get_table_values(connection, table):
 ) VALUES (
 {values}
 )
-ON CONFLICT {pk} DO NOTHING;
+ON CONFLICT ({pk}) DO NOTHING;
 """
 
         except Exception as e:
