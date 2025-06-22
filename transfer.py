@@ -67,7 +67,7 @@ def generate_insert_statements_for_table(connection, table_name : str) -> str:
 
 def transfer_table(source_connection, target_connection, table_name : str) -> str:
     try:
-        primary_key = ss.get_primary_key(source_connection, table_name)
+        primary_key = ss.get_pk(source_connection, table_name)
         logging.info(f"------ primary key = {primary_key}")
     except Exception as e:
         logging.exception("ERROR looking for primary key", e)
@@ -104,7 +104,7 @@ def transfer_table(connection, table, options : Options):
     Handle single table requests
     '''
     table_defn = ss.get_table_definition(connection, table)
-    pk_defn = ss.get_primary_key(connection, table)
+    pk_defn = ss.get_pk(connection, table)
     fk_defn = ss.get_fk_definitions(connection, table)
 
     defn = f"""
