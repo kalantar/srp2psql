@@ -87,7 +87,7 @@ def get_column_definition(column_info):
 
 def get_table_definition(connection : pyodbc.Connection, table : str) -> str:
     logging.debug(f"sql_server.get_table_definition called for table = {table}")
-    
+
     cursor = connection.cursor()
     sql = f"""
 SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
@@ -146,7 +146,6 @@ def get_pk(connection : pyodbc.Connection, table : str) -> str:
         for row in cursor:
             key = row.COLUMN_NAME
             break
-        cursor.close()
 
         if key == None:
             logging.warning(f"no primary key found for table {table}")

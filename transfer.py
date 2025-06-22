@@ -104,7 +104,7 @@ def transfer_table(connection, table, options : Options):
     Handle single table requests
     '''
     table_defn = ss.get_table_definition(connection, table)
-    pk_defn = ss.get_pk(connection, table)
+    pk_defn = ss.get_pk_definition(connection, table)
     fk_defn = ss.get_fk_definitions(connection, table)
 
     defn = f"""
