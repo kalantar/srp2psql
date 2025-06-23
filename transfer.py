@@ -55,7 +55,7 @@ def get_table_values(connection, table) -> list[str]:
     values_cursor.execute(f"SELECT * FROM {table};")
     column_names = [column[0] for column in values_cursor.description]
     pk = ', '.join(pk_columns)
-    columns_str = ', '.join(column_names)
+    columns_str = ', '.join([escape_pg_name(name) for name in column_names])
     for row in values_cursor:
         try:
             values = ',\n   '.join(escape_pg(val) for val in row)
@@ -74,6 +74,14 @@ ON CONFLICT ({pk}) DO NOTHING;
     logging.debug(f"get_table_values returning {values_sql}")
     return values_sql
 
+def escape_pg_name(name):
+    '''
+    Escape keywords.
+    '''
+    # TBD generalize to include all keywords
+    if name == "Order":
+        return '"Order"'
+    return name
 
 def escape_pg(value):
     '''
