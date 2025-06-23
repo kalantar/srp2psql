@@ -28,7 +28,7 @@ TARGET_DATABASE = {
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def get_table_definition(connection, table):
+def get_table_definition(connection, table) -> list[str]:
     '''
     Retrieve the table definition (SQL to create a copy) including primary and foreign keys.
     '''
@@ -38,22 +38,18 @@ def get_table_definition(connection, table):
     pk_defn = ss.get_pk_definition(connection, table)
     fk_defn = "" #ss.get_fk_definitions(connection, table)
 
-    defn = f"""
-{table_defn}
-{pk_defn}
-{fk_defn}
-"""
-    
+    defn = [table_defn, pk_defn, fk_defn]
+
     logging.debug(f"get_table_definition returning {defn}")
     return defn
 
-def get_table_values(connection, table):
+def get_table_values(connection, table) -> list[str]:
     '''
     Get SQL to insert all values from a table.
     '''
     logging.debug(f"get_table_values called for {table}")
 
-    values_sql = ""
+    values_sql = []
     pk_columns = ss.get_pk(connection, table)
     values_cursor = connection.cursor()
     values_cursor.execute(f"SELECT * FROM {table};")
@@ -63,14 +59,14 @@ def get_table_values(connection, table):
     for row in values_cursor:
         try:
             values = ',\n   '.join(escape_pg(val) for val in row)
-            values_sql = f"""{values_sql}
-INSERT INTO {table} (
+            values_sql.append(f"""INSERT INTO {table} (
 {columns_str}
 ) VALUES (
 {values}
 )
 ON CONFLICT ({pk}) DO NOTHING;
 """
+            )
 
         except Exception as e:
             print(f"==== STMT ERROR ({table}): {e}")
@@ -133,12 +129,14 @@ def transfer_table(source_connection, target_connection, table : str, options : 
             values_sql = get_table_values(source_connection, table)
 
         if options.dry_run:
-            print( defn_sql )
-            print (values_sql)
+            print('\n'.join(defn_sql))
+            print('\n'.join(values_sql))
         else:
             logging.info("executing sql")
-            pg.execute(target_connection, defn_sql)
-            pg.execute(target_connection, values_sql)
+            for sql in defn_sql.append(values_sql):
+                pg.execute(sql)
+            # pg.execute(target_connection, defn_sql)
+            # pg.execute(target_connection, values_sql)
 
     except Exception as e:
         logging.exception(f"error transfering table {table}", e)
