@@ -116,24 +116,22 @@ def generate_insert_statements_for_table(connection, table_name : str) -> str:
 
 def transfer_table(source_connection, target_connection, table : str, options : Options) -> str:
 
-    defn_sql = []
-    values_sql = []
+    sql_stmts = []
 
     try:
         # get table
         if not options.data_only:
-            defn_sql = get_table_definition(source_connection, table)
+            sql_stmts.extend(get_table_definition(source_connection, table))
 
         # get data
         if options.include_data or options.data_only:
-            values_sql = get_table_values(source_connection, table)
+            sql_stmts.extend(get_table_values(source_connection, table))
 
         if options.dry_run:
-            print('\n'.join(defn_sql))
-            print('\n'.join(values_sql))
+            print('\n'.join(sql_stmts))
         else:
-            logging.info("executing sql")
-            for sql in defn_sql.append(values_sql):
+            for sql in sql_stmts:
+                logging.debug(f"executing: {sql}")
                 pg.execute(sql)
             # pg.execute(target_connection, defn_sql)
             # pg.execute(target_connection, values_sql)
