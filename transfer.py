@@ -116,8 +116,8 @@ def generate_insert_statements_for_table(connection, table_name : str) -> str:
 
 def transfer_table(source_connection, target_connection, table : str, options : Options) -> str:
 
-    defn_sql = ""
-    values_sql = ""
+    defn_sql = []
+    values_sql = []
 
     try:
         # get table
