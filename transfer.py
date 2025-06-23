@@ -132,7 +132,7 @@ def transfer_table(source_connection, target_connection, table : str, options : 
         else:
             for sql in sql_stmts:
                 logging.debug(f"executing: {sql}")
-                pg.execute(sql)
+                pg.execute(target_connection, sql)
             # pg.execute(target_connection, defn_sql)
             # pg.execute(target_connection, values_sql)
 
