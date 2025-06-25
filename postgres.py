@@ -13,7 +13,7 @@ def connect(db_options:dict):
         return connection
 
     except psycopg2.Error as ex:
-        logging.exception(f"ERROR: unable to connect to postgress database", ex)
+        logging.error(f"ERROR: unable to connect to postgress database: {ex}")
         return None
 
 def execute(connection, sql : str) -> None:
@@ -24,7 +24,6 @@ def execute(connection, sql : str) -> None:
         cursor.execute(sql)
         connection.commit()
     except Exception as e:
-        logging.error(f"error executing sql statement {e}")
-        # logging.exception("error executing sql statement", e)
+        logging.error(f"error executing sql statement {sql}: {e}")
     finally:
         cursor.close()

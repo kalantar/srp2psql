@@ -145,7 +145,7 @@ def transfer_table(source_connection, target_connection, table : str, options : 
             # pg.execute(target_connection, values_sql)
 
     except Exception as e:
-        logging.exception(f"error transfering table {table}", e)
+        logging.error(f"error transfering table {table}: {e}")
 
 def main(options: Options):
 
