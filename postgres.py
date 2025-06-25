@@ -24,6 +24,7 @@ def execute(connection, sql : str) -> None:
         cursor.execute(sql)
         connection.commit()
     except Exception as e:
-        logging.exception("error executing sql statement", e)
+        logging.error(f"error executing sql statement {e}")
+        # logging.exception("error executing sql statement", e)
     finally:
         cursor.close()
